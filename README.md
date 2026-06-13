@@ -39,3 +39,28 @@ Swap `OLD_SPEC` / `NEW_SPEC` for your own before/after pair to watch the verdict
 The guard treats the structured verdict as the source of truth: it blocks when
 `should_block` is true or `omega_decision == "BLOCK"`, and surfaces the detected patterns
 (e.g. `FIELD_REMOVAL`) and the reflex triggers that drove the decision.
+
+
+## Decision semantics
+
+What the guard does with each CodeRifts decision:
+
+| Decision | Meaning | Default guard | `strict=True` |
+|---|---|---|---|
+| `BLOCK` | Breaking contract change | Halts (raises `CodeRiftsBlocked`) | Halts |
+| `REQUIRE_APPROVAL` | Flagged for human review; not a hard break | Proceeds | Halts |
+| `WARN` / `ALLOW` | Safe | Proceeds | Proceeds |
+
+Every breaking change resolves to `BLOCK`, so the default guard (halt on `BLOCK`) catches all genuine contract breaks. `REQUIRE_APPROVAL` is for changes that are not breaking but still warrant a human look (for example a new required field that ships with a default, or a deprecation). Auto-proceeding on those is usually fine for an agent; if you want a human in the loop on anything CodeRifts flags, pass `strict=True`.
+
+```python
+# Default: halt only on breaking changes (BLOCK)
+@coderifts_guard(old_spec, new_spec)
+def call_tool(...): ...
+
+# Strict: also halt on REQUIRE_APPROVAL (human-in-the-loop)
+@coderifts_guard(old_spec, new_spec, strict=True)
+def call_tool(...): ...
+```
+
+On a halt the guard raises `CodeRiftsBlocked`. Inspect `err.decision` (`'BLOCK'` or `'REQUIRE_APPROVAL'`) and `err.verdict` for the full decision object.
