@@ -34,6 +34,18 @@ the tool against the now-incompatible contract.
 
 Swap `OLD_SPEC` / `NEW_SPEC` for your own before/after pair to watch the verdict shift.
 
+## Other framework examples
+
+The same `@coderifts_guard` decorator works on any framework's tools. Two
+siblings live alongside the LangGraph node, both invoking the tool directly with
+no LLM so the trace is deterministic:
+
+- `coderifts_langchain_guard.py` a LangChain tool. `pip install langchain-core` then `python coderifts_langchain_guard.py`.
+- `coderifts_autogen_guard.py` an AutoGen tool registered for execution. `pip install "pyautogen<0.3"` then `python coderifts_autogen_guard.py`.
+
+On the breaking change the tool body never runs (the guard raises before it); on
+the safe additive change it does.
+
 ## How the guard node reads the verdict
 
 The guard treats the structured verdict as the source of truth: it blocks when
